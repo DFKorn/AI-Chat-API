@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { StreamChat } from "stream-chat";
+import OpenAI from "openai";
 
 dotenv.config();
 
@@ -16,6 +17,11 @@ const chatClient = StreamChat.getInstance(
   process.env.STREAM_API_KEY!,
   process.env.STREAM_API_SECRET!
 );
+
+//Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Register user with Stream Chat
 app.post(
@@ -54,6 +60,37 @@ app.post(
     }
   }
 );
+
+//Send message to OpenAI and get response
+app.post("/chat", async (req: Request, res: Response): Promise<any> => {
+  const { message, userId } = req.body || {};
+  if (!message || !userId) {
+    return res
+      .status(400)
+      .json({ error: "Message and userId are required fields." });
+  }
+
+  try {
+    // Verify user exists
+    const userResponse = await chatClient.queryUsers({ id: userId });
+    if (userResponse.users.length === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    // res.send("Success");
+
+    // Send message to OpenAI
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: message }],
+    });
+
+    console.log("OpenAI response:", response);
+    res.send("Success");
+  } catch (err) {
+    console.error("Error communicating with OpenAI:", err);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 
