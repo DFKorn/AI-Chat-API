@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { StreamChat } from "stream-chat";
 import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -19,9 +20,12 @@ const chatClient = StreamChat.getInstance(
 );
 
 //Initialize OpenAI client
-const openai = new OpenAI({
+/* const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}); */
+
+// Initialize Google Gemini client
+const gemini = new GoogleGenAI({});
 
 // Register user with Stream Chat
 app.post(
@@ -61,7 +65,7 @@ app.post(
   }
 );
 
-//Send message to OpenAI and get response
+//Send message to AI and get response
 app.post("/chat", async (req: Request, res: Response): Promise<any> => {
   const { message, userId } = req.body || {};
   if (!message || !userId) {
@@ -79,15 +83,21 @@ app.post("/chat", async (req: Request, res: Response): Promise<any> => {
     // res.send("Success");
 
     // Send message to OpenAI
-    const response = await openai.chat.completions.create({
+    /* const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: message }],
+    }); */
+
+    //send message to Gemini
+    const response = await gemini.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: message,
     });
 
-    console.log("OpenAI response:", response);
+    console.log("AI response:", response.text);
     res.send("Success");
   } catch (err) {
-    console.error("Error communicating with OpenAI:", err);
+    console.error("Error communicating with AI:", err);
     return res.status(500).json({ error: "Internal server error." });
   }
 });
