@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 import { StreamChat } from "stream-chat";
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
+import { db } from "./config/database";
+import { chats, users } from "./db/schema";
+import { eq } from "drizzle-orm";
 
 dotenv.config();
 
@@ -56,6 +59,22 @@ app.post(
           role: "user",
         });
       }
+
+      // Check if user exists in Drizzle DB
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.userId, userId));
+
+      if (existingUser.length === 0) {
+        console.log(`User ${userId} not found in DB. Creating new user.`);
+        await db.insert(users).values({
+          userId,
+          name,
+          email,
+        });
+      }
+
       //console.log("Registering user with ID:", userId);
       res.status(200).json({ userId, name, email });
     } catch (err) {
