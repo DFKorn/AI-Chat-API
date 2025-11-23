@@ -4,4 +4,9 @@ declare module "stream-chat" {
   interface CustomUserData {
     email?: string;
   }
+
+  //extending CustomChannelData interface
+  interface CustomChannelData {
+    name?: string;
+  }
 }
