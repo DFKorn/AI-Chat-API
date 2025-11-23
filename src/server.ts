@@ -93,11 +93,27 @@ app.post("/chat", async (req: Request, res: Response): Promise<any> => {
       model: "gemini-2.5-flash",
       contents: message,
     });
+    //console.log("AI response:", response.text);
 
-    console.log("AI response:", response.text);
-    res.send("Success");
+    const aiMessage: string =
+      response.text || "I'm sorry, I couldn't generate a response.";
+
+    // Create or get Channel between user and AI
+    const channel = chatClient.channel("messaging", `chat-${userId}`, {
+      name: "AI Chat",
+      created_by_id: "ai_bot",
+    });
+    await channel.create();
+    await channel.sendMessage({
+      text: aiMessage,
+      user_id: "ai_bot",
+    });
+
+    res.status(200).json({ reply: aiMessage });
+
+    //res.send("Success");
   } catch (err) {
-    console.error("Error communicating with AI:", err);
+    console.error("Error generating AI response:", err);
     return res.status(500).json({ error: "Internal server error." });
   }
 });
