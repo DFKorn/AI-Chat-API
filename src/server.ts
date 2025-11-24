@@ -99,6 +99,19 @@ app.post("/chat", async (req: Request, res: Response): Promise<any> => {
     if (userResponse.users.length === 0) {
       return res.status(404).json({ error: "User not found." });
     }
+
+    //Check ueser exists in Drizzle DB
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.userId, userId));
+
+    if (existingUser.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "User not found in database, please register first" });
+    }
+
     // res.send("Success");
 
     // Send message to OpenAI
@@ -116,6 +129,13 @@ app.post("/chat", async (req: Request, res: Response): Promise<any> => {
 
     const aiMessage: string =
       response.text || "I'm sorry, I couldn't generate a response.";
+
+    // Save chat to Drizzle DB
+    await db.insert(chats).values({
+      userId,
+      message,
+      reply: aiMessage,
+    });
 
     // Create or get Channel between user and AI
     const channel = chatClient.channel("messaging", `chat-${userId}`, {
