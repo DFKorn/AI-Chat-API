@@ -114,18 +114,31 @@ app.post("/chat", async (req: Request, res: Response): Promise<any> => {
 
     // res.send("Success");
 
-    // Send message to OpenAI
-    /* const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [{ role: "user", content: message }],
-    }); */
+    // Fetch users past messages for context
+    const chatHistory = await db
+      .select()
+      .from(chats)
+      .where(eq(chats.userId, userId))
+      .orderBy(chats.createdAt)
+      .limit(10);
+
+    // Format chat history for AI
+
+    const conversation = chatHistory.flatMap((chat) => [
+      { role: "user", parts: [{ text: chat.message }] },
+      { role: "model", parts: [{ text: chat.message }] },
+    ]);
+
+    // Create Gemini Chat
+    const chat = gemini.chats.create({
+      model: "gemini-2.5-flash",
+      history: conversation,
+    });
 
     //send message to Gemini
-    const response = await gemini.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: message,
+    const response = await chat.sendMessage({
+      message: message,
     });
-    //console.log("AI response:", response.text);
 
     const aiMessage: string =
       response.text || "I'm sorry, I couldn't generate a response.";
