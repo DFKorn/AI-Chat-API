@@ -6,7 +6,7 @@ This is the backend for the Chat AI application. It is a Node/Express/TypeScript
  - Express.js
  - TypeScript
  - [Stream Chat Messaging](https://getstream.io/) - used for chat, chat history, and user management.
- - Google Gemini - used for the AI chatbot
+ - Google Gemini (Gemini 2.5 Flash) - used for the AI chatbot
 
 ### Database 
 - Neon Database - stores user information and chat history
