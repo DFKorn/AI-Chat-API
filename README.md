@@ -14,5 +14,5 @@ This is the backend for the Chat AI application. It is a Node/Express/TypeScript
 
 ## Endpoints
 - POST /register-user - Create a user in Stream chat and in the database
-- POST /chat - Creates a new Stream chat channel, sends a request to Open AI to generate a response, and saves the chat history the database
+- POST /chat - Creates a new Stream chat channel, sends a request to Google Gemini to generate a response, and saves the chat history the database
 - POST /get-messages - Get's the chat history for a specific user
